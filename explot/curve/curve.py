@@ -23,7 +23,7 @@ def plot_curve(
     dt: Optional[float] = None,
     ax: Optional[Axes] = None,
     **kwargs,
-) -> None:
+) -> tuple[Line2D | CurveArrow]:
 
     # Get the current axes instance is it is not provided
     if ax is None:
@@ -41,7 +41,7 @@ def plot_curve(
     if arrow_points is None:
 
         if not add_middle_arrow_point:
-            return
+            return (line,)
 
         # Calculate the middle arrow point
         middle_arrow_point = t_vector.mean()
@@ -53,6 +53,7 @@ def plot_curve(
     t_min = min(t_vector)
     t_max = max(t_vector)
 
+    arrows: list[CurveArrow] = []
     for t in arrow_points:
         # Ensure that t must be in the range [t_min, t_max]
         assert (
@@ -91,8 +92,10 @@ def plot_curve(
 
         # Add the arrow to the line
         arrow = add_arrow_to_line(line, x, y, dx, dy, ax=ax)
+        arrows.append(arrow)
 
-    return arrow
+    # Return the line (curve) as well as the arrows
+    return tuple((line, *arrows))
 
 
 def add_arrow_to_line(
@@ -102,7 +105,7 @@ def add_arrow_to_line(
     dx,
     dy,
     ax: Optional[Axes] = None,
-):
+) -> CurveArrow:
 
     # Get the current axes instance is it is not provided
     if ax is None:
@@ -132,6 +135,9 @@ def add_arrow_to_line(
 
     # Update arrows since the x and y limits of the axes may have changed
     update_curve_arrows(ax=ax)
+
+    # The newly added arrow
+    arrow = list(filter(lambda x: isinstance(x, CurveArrow), ax.patches))[-1]
 
     return arrow
 
